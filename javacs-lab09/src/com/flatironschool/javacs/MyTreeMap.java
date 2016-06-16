@@ -72,8 +72,21 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 		Comparable<? super K> k = (Comparable<? super K>) target;
 		
 		// the actual search
-        // TODO: Fill this in.
-        return null;
+    Node working = root;
+    while( working != null) {
+      if(equals(target,working.key)) {
+        return working;
+      }
+      else {
+        if(k.compareTo(working.key) > 0) {
+          working = working.right;
+        }
+        else {
+          working = working.left;
+        }
+      }
+    }
+    return null;
 	}
 
 	/**
@@ -92,8 +105,31 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 
 	@Override
 	public boolean containsValue(Object target) {
-		return false;
+    Node working = root;
+    return traverse(target, working);
 	}
+
+  public boolean traverse(Object target, Node working) {
+    // no value if target is null
+    if(target == null) {
+      return false;
+    }
+    // value found
+    if(equals(target, working.value)) {
+      return true;
+    }
+    // traverse tree
+    if(working.left != null) {
+      return traverse(target, working.left);
+    }
+    if(working.right != null) {
+      return traverse(target, working.right);
+    }
+
+    // no children
+    return false;
+
+  }
 
 	@Override
 	public Set<Map.Entry<K, V>> entrySet() {
@@ -117,9 +153,20 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 	@Override
 	public Set<K> keySet() {
 		Set<K> set = new LinkedHashSet<K>();
-        // TODO: Fill this in.
+    Node working = root;
+    setHelper(working, set);
 		return set;
 	}
+
+  public void setHelper(Node node, Set<K> set) {
+    if(node.left != null) {
+      setHelper(node.left, set);
+    }
+    set.add(node.key);
+    if(node.right != null) {
+      setHelper(node.right, set);
+    }
+  }
 
 	@Override
 	public V put(K key, V value) {
@@ -135,8 +182,48 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 	}
 
 	private V putHelper(Node node, K key, V value) {
-        // TODO: Fill this in.
-        return null;
+		// something to make the compiler happy
+		@SuppressWarnings("unchecked")
+		Comparable<? super K> k = (Comparable<? super K>) key;
+    
+    // check if node is in tree
+    Node searchResult = findNode(key);
+
+    // node not in tree
+    if(searchResult == null) {
+      while(node != null) {
+        // key is greater than node
+        if(k.compareTo(node.key) > 0) {
+          // check if right child is occupied
+          if(node.right == null) {
+            node.right = new Node(key, value);
+            size++;
+            return null;
+          }
+          else {
+            node = node.right;
+          }
+        }
+        else {
+          // check if left child is occupied
+          if(node.left == null) {
+            node.left = new Node(key, value);
+            size++;
+            return null;
+          }
+          else {
+            node = node.left;
+          }
+        }
+      }
+      return null;
+    }
+    else {
+      V oldVal = searchResult.value;
+      searchResult.value = value;
+      searchResult.key = key;
+      return oldVal;
+    }
 	}
 
 	@Override
